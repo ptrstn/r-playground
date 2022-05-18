@@ -1,0 +1,196 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+if (!require("pacman")) install.packages("pacman")
+library("pacman")
+
+p_load(dplyr)
+p_load(tidyr)
+```
+
+## 1 - Introduction
+
+Lets say we have a data frame with prices for a specific product with different groups and the price for a given time:
+
+```{r}
+df1 <- tibble(
+  product = c("Super", "Diesel", "Super", "Super", "Diesel"),
+  time = c("00:00", "00:00", "01:00", "02:00", "02:00"),
+  price = c(1.10, 2.10, 1.11, 1.12, 2.13)
+)
+df1
+```
+
+*Note*: The price for Diesel at 01:00 AM was not recorded/ is missing.
+
+The missing row for the Diesel price at 01:00 AM can be generated using the ```complete``` function:
+
+```{r}
+df1 %>% complete(product, time)
+```
+
+## 2 - Grouping
+
+Let's assume the gas prices are associated with a unique gas station which is in a unique area. Area 1 always records the prices at the 00-minute mark of each hour of the day and area 2 always records the prices at the 01-minute mark of each of of the day.
+
+```{r}
+df2 <- tibble(
+  area = c(1, 1, 2, 1, 2, 1, 1, 2),
+  gas_station = c("A", "B", "C", "A", "C", "A", "B", "C"),
+  time = c("00:00", "00:00", "00:01", "01:00", "01:01", "02:00", "02:00", "02:01"),
+  price = c(1.10, 1.10, 1.05, 1.11, 1.04, 1.12, 1.12, 1.07)
+)
+df2
+```
+
+*Note*: The price for gas_station B at 01:00 AM was not recorded/ is missing.
+
+A simple ```complete``` would create an undesired result, because undesired rows would be generated. Since prices in area A are never recorded at the 01-minute mark, these rows are redundant:
+
+```{r}
+df2 %>% complete(area, gas_station, time)
+```
+
+To complete this date frame correctly, the price records have to be grouped by area.
+
+```{r}
+df2 %>% 
+  group_by(area) %>% 
+  complete(gas_station, time)
+```
+
+## 3 - Complex Grouping
+
+Let's assume that each gas_station in each area records both the prices for Super and Diesel. The prices for each product of each area are reported at the same time.
+
+```{r rows.print=20}
+stations <- c("A", "B", "C")
+products <- c("Super", "Diesel")
+num_stations <- 3
+num_products <- 2
+num_records <- 3
+
+df3 <- tibble(
+  time = c(
+    "00:00", "00:00", "00:01", "00:30", "00:30", "00:31", 
+    "01:00", "01:00", "01:01", "01:30", "01:30", "01:31", 
+    "02:00", "02:00", "02:01", "02:30", "02:30", "02:31"
+    ), 
+  area = rep(c(1, 1, 2), times = num_records * num_products),
+  gas_station = rep(stations, times = num_products * num_records),
+  product = rep(rep(products, each=num_stations), times = num_records),
+  price = round(runif(n= num_records * num_products * num_stations, min=1, max=1.2), 2)
+)
+df3
+```
+
+For whatever reason, some records have been lost:
+
+```{r rows.print=20}
+df3_missing <- df3 %>% 
+  filter(!(time == "01:30" & gas_station == "B" & product == "Diesel")) %>%
+  filter(!(time == "02:00" & gas_station == "A" & product == "Super")) %>%
+  filter(!(time == "01:00" & gas_station == "A" & product == "Super"))
+df3_missing
+```
+
+Now, to indicate the missing records, the missing rows can be generated using complete:
+
+```{r rows.print=20}
+df3_complete <- df3_missing %>% 
+  group_by(area, product) %>% 
+  complete(gas_station, time)
+```
+
+Now the tibble can be reordered again:
+
+```{r rows.print=20}
+df3_complete %>% 
+  relocate(time) %>% 
+  arrange(time, gas_station)
+```
+
+## 4 - Coupled columns
+
+Let's say there are certain columns in the data frame that a coupled with each other
+- product_name and product_id
+- area_name and area_id
+- station_name and station_id
+
+```{r rows.print=20}
+station_ids <- c(1, 2, 3)
+station_names <- c("Shell", "BP", "ESSO")
+area_ids <- c(1, 2)
+area_names <- c("Berlin", "Frankfurt")
+product_ids <- c(1, 2)
+product_names <- c("Super", "Diesel")
+
+num_stations <- length(station_ids)
+num_products <- length(product_ids)
+num_records <- 3
+
+df4 <- tibble(
+  time = c(
+    "00:00", "00:00", "00:01", "00:30", "00:30", "00:31", 
+    "01:00", "01:00", "01:01", "01:30", "01:30", "01:31", 
+    "02:00", "02:00", "02:01", "02:30", "02:30", "02:31"
+    ), 
+  area_id = rep(c(1, 1, 2), times = num_records * num_products),
+  area = rep(c("Berlin", "Berlin", "Frankfurt"), times = num_records * num_products),
+  
+  station_id = rep(station_ids, times = num_products * num_records),
+  station = rep(station_names, times = num_products * num_records),
+  
+  product_id = rep(rep(product_ids, each=num_stations), times = num_records),
+  product = rep(rep(product_names, each=num_stations), times = num_records),
+  
+  price = round(runif(n= num_records * num_products * num_stations, min=1, max=1.2), 2)
+)
+df4
+```
+
+And some records have been lost again:
+
+```{r rows.print=20}
+df4_missing <- df %>% 
+  filter(!(time == "01:00" & station == "Shell" & product == "Super")) %>%
+  filter(!(time == "01:30" & station == "BP" & product == "Diesel")) %>%
+  filter(!(time == "02:00" & station == "Shell" & product == "Super"))
+  
+df4_missing
+```
+
+A simple complete would generate too many rows:
+
+```{r rows.print=20}
+df4_missing %>% 
+  group_by(area, product) %>% 
+  complete(station, station_id, area_id, product_id, time)
+```
+
+To find only the combinations (of station, station_id, area_id and product_id) that occur in the group data, ```nesting``` should be used:
+
+```{r rows.print=20}
+df4_completed <- df_missing %>% 
+  group_by(area, product) %>% 
+  complete(nesting(station, station_id, area_id, product_id), time)
+
+df4_completed
+```
+
+Now the tibble can be reordered again:
+
+```{r rows.print=20}
+df4_completed %>% 
+  relocate(time) %>% 
+  arrange(time, station_id)
+```
+
+## References
+
+- https://tidyr.tidyverse.org/reference/complete.html
+- https://web.archive.org/web/20200312082724/http://www.imachordata.com/you-complete-me/
+
