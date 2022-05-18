@@ -1,6 +1,6 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "You complete me"
+output: rmarkdown::github_document
 ---
 
 ```{r}
@@ -9,6 +9,12 @@ library("pacman")
 
 p_load(dplyr)
 p_load(tidyr)
+p_load(ggplot2)
+p_load(hms)
+
+knitr::opts_chunk$set(
+  fig.path = "figures/you-complete-me/"
+)
 ```
 
 ## 1 - Introduction
@@ -73,6 +79,8 @@ num_stations <- 3
 num_products <- 2
 num_records <- 3
 
+set.seed(197)
+
 df3 <- tibble(
   time = c(
     "00:00", "00:00", "00:01", "00:30", "00:30", "00:31", 
@@ -108,9 +116,10 @@ df3_complete <- df3_missing %>%
 Now the tibble can be reordered again:
 
 ```{r rows.print=20}
-df3_complete %>% 
-  relocate(time) %>% 
+df3_complete <- df3_complete %>% 
+  relocate(time, area, gas_station, product) %>% 
   arrange(time, gas_station)
+df3_complete
 ```
 
 ## 4 - Coupled columns
@@ -131,6 +140,8 @@ product_names <- c("Super", "Diesel")
 num_stations <- length(station_ids)
 num_products <- length(product_ids)
 num_records <- 3
+
+set.seed(345678)
 
 df4 <- tibble(
   time = c(
@@ -155,7 +166,7 @@ df4
 And some records have been lost again:
 
 ```{r rows.print=20}
-df4_missing <- df %>% 
+df4_missing <- df4 %>% 
   filter(!(time == "01:00" & station == "Shell" & product == "Super")) %>%
   filter(!(time == "01:30" & station == "BP" & product == "Diesel")) %>%
   filter(!(time == "02:00" & station == "Shell" & product == "Super"))
@@ -174,23 +185,58 @@ df4_missing %>%
 To find only the combinations (of station, station_id, area_id and product_id) that occur in the group data, ```nesting``` should be used:
 
 ```{r rows.print=20}
-df4_completed <- df_missing %>% 
+df4_complete <- df4_missing %>% 
   group_by(area, product) %>% 
   complete(nesting(station, station_id, area_id, product_id), time)
 
-df4_completed
+df4_complete
 ```
 
 Now the tibble can be reordered again:
 
 ```{r rows.print=20}
-df4_completed %>% 
-  relocate(time) %>% 
+df4_complete <- df4_complete %>% 
+  relocate(time, area_id, area, station_id, station, product_id, product) %>% 
   arrange(time, station_id)
+
+df4_complete
 ```
+### Plot comparison
+
+```{r original}
+ggplot(df4, aes(parse_hm(time), price, color=station)) + 
+  geom_point() +
+  geom_line() + 
+  xlab("time") +
+  ggtitle("Orignal Data Frame") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r missing}
+ggplot(df4_missing, aes(parse_hm(time), price, color=station)) + 
+  geom_point() +
+  geom_line() + 
+  xlab("time") +
+  ggtitle("Data Frame with missing Data Points") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r completed}
+ggplot(df4_complete, aes(parse_hm(time), price, color=station)) + 
+  geom_point() +
+  geom_line() + 
+  xlab("time") +
+  ggtitle("Completed Data Frame with missing Data Points") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
 
 ## References
 
 - https://tidyr.tidyverse.org/reference/complete.html
 - https://web.archive.org/web/20200312082724/http://www.imachordata.com/you-complete-me/
 
+### Misc
+
+- https://stackoverflow.com/questions/39814916/how-can-i-see-output-of-rmd-in-github/39816334
+- http://uc-r.github.io/setting_seed/
