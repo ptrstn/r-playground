@@ -1,0 +1,198 @@
+---
+title: "Maps or Geo-Spatial Data Visualization"
+output: rmarkdown::github_document
+---
+
+https://www.youtube.com/watch?v=AbrReroOWS8
+
+```{r}
+if (!require("pacman")) install.packages("pacman")
+library("pacman")
+
+
+knitr::opts_chunk$set(
+  fig.path = "figures/tolle-karte/"
+)
+```
+
+## Map Data
+
+The ```maps``` package provides the coordinates of the borders for each country in the world.
+
+```{r}
+p_load(ggplot2, maps)
+germany <- map_data("world", region = "Germany")
+
+p_load(knitr)
+kable(germany[1:5,])
+```
+```coord_map``` of the ```mapproj``` package, allows geographical projection of the data.
+
+```{r germany-map}
+p_load(mapproj)
+p_load(dplyr)
+
+germany %>% ggplot(aes(long, lat, group = group, fill = subregion)) +
+  geom_polygon(color = "black") +
+  coord_map()
+```
+
+```{r germany-map-albers}
+germany %>% ggplot(aes(long, lat, group = group, fill = subregion)) +
+  geom_polygon(color = "black") +
+  coord_map("albers",  lat0 = 45.5, lat1 = 29.5)
+```
+
+## Spatial Data with sf
+
+Some countries provide spatial data in certain data formats such as KML or KMZ (which is an compressed version of KML).
+
+Austria provides the districts borders of Vienna at their [data.gv.at](https://www.data.gv.at/) page:
+
+- https://www.data.gv.at/katalog/dataset/2ee6b8bf-6292-413c-bb8b-bd22dbb2ad4b
+
+The ```.kml``` file can be retrieved under following url:
+
+```{r}
+districts_kml_url <- "https://data.wien.gv.at/daten/geo?version=1.3.0&service=WMS&request=GetMap&crs=EPSG:4326&bbox=48.10,16.16,48.34,16.59&width=1&height=1&layers=ogdwien:BEZIRKSGRENZEOGD&styles=&format=application/vnd.google-earth.kml+xml"
+
+p_load(devtools)
+if (!require("sf")) devtools::install_github("r-spatial/sf")
+
+# Both the URL and the local path to the .kml-file work
+vienna_districts <- read_sf(districts_kml_url)
+
+vienna_districts$geometry
+vienna_districts$geometry[1]
+vienna_districts$Description
+
+glimpse(vienna_districts)
+```
+
+### Feature extraction
+
+The ```geometry``` contains both a single point to the district and a polygon shape.
+
+```{r}
+points <- st_collection_extract(vienna_districts, type = "POINT")
+points %>% select(geometry)
+```
+
+```{r}
+polygons <- st_collection_extract(vienna_districts, type = "POLYGON")
+polygons %>% select(geometry)
+```
+
+### Casting 
+
+The polygons can be converted to the desired type.
+
+```{r}
+st_cast(polygons, "LINESTRING")$geometry
+```
+### Simple plotting
+
+The ```ggplot``` package, provides the function ```geom_sf``` to plot the polygon shapes.
+
+```{r districts-simple}
+ggplot(vienna_districts, aes(fill = Description)) + 
+  geom_sf() + 
+  theme(legend.position = "none")
+```
+
+### HTML Parsing
+
+Unfortunately the ```Description``` of the polygon shapes of the districts are in a HTML format, which needs to be parsed. The ```rvest``` package provides this functionality.
+
+```{r}
+p_load(rvest)
+
+vienna_districts$Description[1]
+h <- read_html(vienna_districts$Description[1])
+h %>% html_nodes(xpath = "/html/body/ul/li[2]/strong/span") %>% html_text()
+h %>% html_nodes(xpath = "/html/body/ul/li[2]/span") %>% html_text()
+h %>% html_elements("li")
+names <- h %>% html_elements(".atr-name") %>% html_text2()
+values <- h %>% html_elements(".atr-value") %>% html_text2()
+
+description <- tibble(names, values)
+kable(description)
+```
+
+### Widen Tibble Data Frame
+
+```{r}
+p_load(tidyr)
+
+kable(pivot_wider(description, names_from = names, values_from = values))
+```
+
+
+```{r}
+extract_description <- function(vienna_district_description_html){
+  district_html <- read_html(vienna_district_description_html)
+  names <- district_html %>% html_elements(".atr-name") %>% html_text2()
+  values <- district_html %>% html_elements(".atr-value") %>% html_text2()
+  description_long <- tibble(names, values)
+  description_wide <- pivot_wider(description_long, names_from = names, values_from = values)
+  description_wide
+}
+```
+
+### Element-Wise Function Application
+
+Using ```map_dfr``` of the ```purrr``` package, the newly created ```extract_description``` function will be applied to each observation of the ```Description``` feature in the ```vienna_districts``` tibble.
+
+```{r}
+p_load(purrr)
+district_descriptions <- vienna_districts$Description %>% map_dfr(extract_description)
+kable(district_descriptions)
+```
+
+```st_coordinates``` converts single points into (x, y)-coordinate pairs.
+
+```{r}
+points <- vienna_districts %>%
+  st_collection_extract(type = "POINT") %>% 
+  select(geometry) %>% 
+  sf::st_coordinates(points)
+
+geometries <- vienna_districts %>% 
+  select(geometry)
+
+districts <- district_descriptions %>% 
+  bind_cols(geometries) %>%
+  bind_cols(points)
+
+kable(districts)
+```
+
+### Plotting 
+
+```{r districts-with-legend, fig.width = 10}
+ggplot(districts, aes(geometry = geometry, fill = NAMEK_NUM)) + 
+  geom_sf() +
+  ggtitle("Districts of Vienna")
+```
+
+```{r districts-labeled}
+ggplot(districts) + 
+  geom_sf(aes(geometry = geometry, fill = NAMEK_NUM)) +
+  geom_text(aes(x = X, y = Y, label = BEZ), color = "white", size = 3) +
+  ggtitle("Districts of Vienna") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.position = "none")
+```
+
+
+## References 
+
+- https://ggplot2.tidyverse.org/reference/map_data.html
+- https://github.com/edzer/sp/
+- https://github.com/r-spatial/sf
+- https://stackoverflow.com/questions/44320008/parse-html-data-using-r
+- https://rvest.tidyverse.org/
+- https://yutani.rbind.io/post/geom-sf-text-and-geom-sf-label-are-coming/
+- https://www.youtube.com/watch?v=AgWgPSZ7Gp0
+- https://www.youtube.com/watch?v=M7khlIRlr4s
+- https://www.nceas.ucsb.edu/sites/default/files/2020-04/ggmapCheatsheet.pdf
