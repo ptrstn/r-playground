@@ -1,6 +1,8 @@
 You complete me
 ================
 
+<https://www.youtube.com/watch?v=ZLVWUGMkJCY>
+
 ``` r
 if (!require("pacman")) install.packages("pacman")
 ```
@@ -31,17 +33,18 @@ df1 <- tibble(
   time = c("00:00", "00:00", "01:00", "02:00", "02:00"),
   price = c(1.10, 2.10, 1.11, 1.12, 2.13)
 )
-df1
+
+p_load(knitr)
+kable(df1)
 ```
 
-    ## # A tibble: 5 × 3
-    ##   product time  price
-    ##   <chr>   <chr> <dbl>
-    ## 1 Super   00:00  1.1 
-    ## 2 Diesel  00:00  2.1 
-    ## 3 Super   01:00  1.11
-    ## 4 Super   02:00  1.12
-    ## 5 Diesel  02:00  2.13
+| product | time  | price |
+|:--------|:------|------:|
+| Super   | 00:00 |  1.10 |
+| Diesel  | 00:00 |  2.10 |
+| Super   | 01:00 |  1.11 |
+| Super   | 02:00 |  1.12 |
+| Diesel  | 02:00 |  2.13 |
 
 *Note*: The price for Diesel at 01:00 AM was not recorded/ is missing.
 
@@ -49,18 +52,17 @@ The missing row for the Diesel price at 01:00 AM can be generated using
 the `complete` function:
 
 ``` r
-df1 %>% complete(product, time)
+df1 %>% complete(product, time) %>% kable()
 ```
 
-    ## # A tibble: 6 × 3
-    ##   product time  price
-    ##   <chr>   <chr> <dbl>
-    ## 1 Diesel  00:00  2.1 
-    ## 2 Diesel  01:00 NA   
-    ## 3 Diesel  02:00  2.13
-    ## 4 Super   00:00  1.1 
-    ## 5 Super   01:00  1.11
-    ## 6 Super   02:00  1.12
+| product | time  | price |
+|:--------|:------|------:|
+| Diesel  | 00:00 |  2.10 |
+| Diesel  | 01:00 |    NA |
+| Diesel  | 02:00 |  2.13 |
+| Super   | 00:00 |  1.10 |
+| Super   | 01:00 |  1.11 |
+| Super   | 02:00 |  1.12 |
 
 ## 2 - Grouping
 
@@ -76,20 +78,20 @@ df2 <- tibble(
   time = c("00:00", "00:00", "00:01", "01:00", "01:01", "02:00", "02:00", "02:01"),
   price = c(1.10, 1.10, 1.05, 1.11, 1.04, 1.12, 1.12, 1.07)
 )
-df2
+
+df2 %>% kable()
 ```
 
-    ## # A tibble: 8 × 4
-    ##    area gas_station time  price
-    ##   <dbl> <chr>       <chr> <dbl>
-    ## 1     1 A           00:00  1.1 
-    ## 2     1 B           00:00  1.1 
-    ## 3     2 C           00:01  1.05
-    ## 4     1 A           01:00  1.11
-    ## 5     2 C           01:01  1.04
-    ## 6     1 A           02:00  1.12
-    ## 7     1 B           02:00  1.12
-    ## 8     2 C           02:01  1.07
+| area | gas_station | time  | price |
+|-----:|:------------|:------|------:|
+|    1 | A           | 00:00 |  1.10 |
+|    1 | B           | 00:00 |  1.10 |
+|    2 | C           | 00:01 |  1.05 |
+|    1 | A           | 01:00 |  1.11 |
+|    2 | C           | 01:01 |  1.04 |
+|    1 | A           | 02:00 |  1.12 |
+|    1 | B           | 02:00 |  1.12 |
+|    2 | C           | 02:01 |  1.07 |
 
 *Note*: The price for gas_station B at 01:00 AM was not recorded/ is
 missing.
@@ -99,23 +101,47 @@ rows would be generated. Since prices in area A are never recorded at
 the 01-minute mark, these rows are redundant:
 
 ``` r
-df2 %>% complete(area, gas_station, time)
+df2 %>% complete(area, gas_station, time) %>% kable()
 ```
 
-    ## # A tibble: 36 × 4
-    ##     area gas_station time  price
-    ##    <dbl> <chr>       <chr> <dbl>
-    ##  1     1 A           00:00  1.1 
-    ##  2     1 A           00:01 NA   
-    ##  3     1 A           01:00  1.11
-    ##  4     1 A           01:01 NA   
-    ##  5     1 A           02:00  1.12
-    ##  6     1 A           02:01 NA   
-    ##  7     1 B           00:00  1.1 
-    ##  8     1 B           00:01 NA   
-    ##  9     1 B           01:00 NA   
-    ## 10     1 B           01:01 NA   
-    ## # … with 26 more rows
+| area | gas_station | time  | price |
+|-----:|:------------|:------|------:|
+|    1 | A           | 00:00 |  1.10 |
+|    1 | A           | 00:01 |    NA |
+|    1 | A           | 01:00 |  1.11 |
+|    1 | A           | 01:01 |    NA |
+|    1 | A           | 02:00 |  1.12 |
+|    1 | A           | 02:01 |    NA |
+|    1 | B           | 00:00 |  1.10 |
+|    1 | B           | 00:01 |    NA |
+|    1 | B           | 01:00 |    NA |
+|    1 | B           | 01:01 |    NA |
+|    1 | B           | 02:00 |  1.12 |
+|    1 | B           | 02:01 |    NA |
+|    1 | C           | 00:00 |    NA |
+|    1 | C           | 00:01 |    NA |
+|    1 | C           | 01:00 |    NA |
+|    1 | C           | 01:01 |    NA |
+|    1 | C           | 02:00 |    NA |
+|    1 | C           | 02:01 |    NA |
+|    2 | A           | 00:00 |    NA |
+|    2 | A           | 00:01 |    NA |
+|    2 | A           | 01:00 |    NA |
+|    2 | A           | 01:01 |    NA |
+|    2 | A           | 02:00 |    NA |
+|    2 | A           | 02:01 |    NA |
+|    2 | B           | 00:00 |    NA |
+|    2 | B           | 00:01 |    NA |
+|    2 | B           | 01:00 |    NA |
+|    2 | B           | 01:01 |    NA |
+|    2 | B           | 02:00 |    NA |
+|    2 | B           | 02:01 |    NA |
+|    2 | C           | 00:00 |    NA |
+|    2 | C           | 00:01 |  1.05 |
+|    2 | C           | 01:00 |    NA |
+|    2 | C           | 01:01 |  1.04 |
+|    2 | C           | 02:00 |    NA |
+|    2 | C           | 02:01 |  1.07 |
 
 To complete this date frame correctly, the price records have to be
 grouped by area.
@@ -123,22 +149,21 @@ grouped by area.
 ``` r
 df2 %>% 
   group_by(area) %>% 
-  complete(gas_station, time)
+  complete(gas_station, time) %>%
+  kable()
 ```
 
-    ## # A tibble: 9 × 4
-    ## # Groups:   area [2]
-    ##    area gas_station time  price
-    ##   <dbl> <chr>       <chr> <dbl>
-    ## 1     1 A           00:00  1.1 
-    ## 2     1 A           01:00  1.11
-    ## 3     1 A           02:00  1.12
-    ## 4     1 B           00:00  1.1 
-    ## 5     1 B           01:00 NA   
-    ## 6     1 B           02:00  1.12
-    ## 7     2 C           00:01  1.05
-    ## 8     2 C           01:01  1.04
-    ## 9     2 C           02:01  1.07
+| area | gas_station | time  | price |
+|-----:|:------------|:------|------:|
+|    1 | A           | 00:00 |  1.10 |
+|    1 | A           | 01:00 |  1.11 |
+|    1 | A           | 02:00 |  1.12 |
+|    1 | B           | 00:00 |  1.10 |
+|    1 | B           | 01:00 |    NA |
+|    1 | B           | 02:00 |  1.12 |
+|    2 | C           | 00:01 |  1.05 |
+|    2 | C           | 01:01 |  1.04 |
+|    2 | C           | 02:01 |  1.07 |
 
 ## 3 - Complex Grouping
 
@@ -166,30 +191,30 @@ df3 <- tibble(
   product = rep(rep(products, each=num_stations), times = num_records),
   price = round(runif(n= num_records * num_products * num_stations, min=1, max=1.2), 2)
 )
-df3
+
+df3 %>% kable()
 ```
 
-    ## # A tibble: 18 × 5
-    ##    time   area gas_station product price
-    ##    <chr> <dbl> <chr>       <chr>   <dbl>
-    ##  1 00:00     1 A           Super    1.15
-    ##  2 00:00     1 B           Super    1.09
-    ##  3 00:01     2 C           Super    1.02
-    ##  4 00:30     1 A           Diesel   1.01
-    ##  5 00:30     1 B           Diesel   1.2 
-    ##  6 00:31     2 C           Diesel   1.12
-    ##  7 01:00     1 A           Super    1.15
-    ##  8 01:00     1 B           Super    1.07
-    ##  9 01:01     2 C           Super    1.15
-    ## 10 01:30     1 A           Diesel   1.11
-    ## 11 01:30     1 B           Diesel   1.15
-    ## 12 01:31     2 C           Diesel   1.08
-    ## 13 02:00     1 A           Super    1.06
-    ## 14 02:00     1 B           Super    1.08
-    ## 15 02:01     2 C           Super    1.14
-    ## 16 02:30     1 A           Diesel   1.19
-    ## 17 02:30     1 B           Diesel   1.06
-    ## 18 02:31     2 C           Diesel   1.04
+| time  | area | gas_station | product | price |
+|:------|-----:|:------------|:--------|------:|
+| 00:00 |    1 | A           | Super   |  1.15 |
+| 00:00 |    1 | B           | Super   |  1.09 |
+| 00:01 |    2 | C           | Super   |  1.02 |
+| 00:30 |    1 | A           | Diesel  |  1.01 |
+| 00:30 |    1 | B           | Diesel  |  1.20 |
+| 00:31 |    2 | C           | Diesel  |  1.12 |
+| 01:00 |    1 | A           | Super   |  1.15 |
+| 01:00 |    1 | B           | Super   |  1.07 |
+| 01:01 |    2 | C           | Super   |  1.15 |
+| 01:30 |    1 | A           | Diesel  |  1.11 |
+| 01:30 |    1 | B           | Diesel  |  1.15 |
+| 01:31 |    2 | C           | Diesel  |  1.08 |
+| 02:00 |    1 | A           | Super   |  1.06 |
+| 02:00 |    1 | B           | Super   |  1.08 |
+| 02:01 |    2 | C           | Super   |  1.14 |
+| 02:30 |    1 | A           | Diesel  |  1.19 |
+| 02:30 |    1 | B           | Diesel  |  1.06 |
+| 02:31 |    2 | C           | Diesel  |  1.04 |
 
 For whatever reason, some records have been lost:
 
@@ -198,27 +223,27 @@ df3_missing <- df3 %>%
   filter(!(time == "01:30" & gas_station == "B" & product == "Diesel")) %>%
   filter(!(time == "02:00" & gas_station == "A" & product == "Super")) %>%
   filter(!(time == "01:00" & gas_station == "A" & product == "Super"))
-df3_missing
+
+df3_missing %>% kable()
 ```
 
-    ## # A tibble: 15 × 5
-    ##    time   area gas_station product price
-    ##    <chr> <dbl> <chr>       <chr>   <dbl>
-    ##  1 00:00     1 A           Super    1.15
-    ##  2 00:00     1 B           Super    1.09
-    ##  3 00:01     2 C           Super    1.02
-    ##  4 00:30     1 A           Diesel   1.01
-    ##  5 00:30     1 B           Diesel   1.2 
-    ##  6 00:31     2 C           Diesel   1.12
-    ##  7 01:00     1 B           Super    1.07
-    ##  8 01:01     2 C           Super    1.15
-    ##  9 01:30     1 A           Diesel   1.11
-    ## 10 01:31     2 C           Diesel   1.08
-    ## 11 02:00     1 B           Super    1.08
-    ## 12 02:01     2 C           Super    1.14
-    ## 13 02:30     1 A           Diesel   1.19
-    ## 14 02:30     1 B           Diesel   1.06
-    ## 15 02:31     2 C           Diesel   1.04
+| time  | area | gas_station | product | price |
+|:------|-----:|:------------|:--------|------:|
+| 00:00 |    1 | A           | Super   |  1.15 |
+| 00:00 |    1 | B           | Super   |  1.09 |
+| 00:01 |    2 | C           | Super   |  1.02 |
+| 00:30 |    1 | A           | Diesel  |  1.01 |
+| 00:30 |    1 | B           | Diesel  |  1.20 |
+| 00:31 |    2 | C           | Diesel  |  1.12 |
+| 01:00 |    1 | B           | Super   |  1.07 |
+| 01:01 |    2 | C           | Super   |  1.15 |
+| 01:30 |    1 | A           | Diesel  |  1.11 |
+| 01:31 |    2 | C           | Diesel  |  1.08 |
+| 02:00 |    1 | B           | Super   |  1.08 |
+| 02:01 |    2 | C           | Super   |  1.14 |
+| 02:30 |    1 | A           | Diesel  |  1.19 |
+| 02:30 |    1 | B           | Diesel  |  1.06 |
+| 02:31 |    2 | C           | Diesel  |  1.04 |
 
 Now, to indicate the missing records, the missing rows can be generated
 using complete:
@@ -235,31 +260,30 @@ Now the tibble can be reordered again:
 df3_complete <- df3_complete %>% 
   relocate(time, area, gas_station, product) %>% 
   arrange(time, gas_station)
-df3_complete
+
+df3_complete %>% kable()
 ```
 
-    ## # A tibble: 18 × 5
-    ## # Groups:   area, product [4]
-    ##    time   area gas_station product price
-    ##    <chr> <dbl> <chr>       <chr>   <dbl>
-    ##  1 00:00     1 A           Super    1.15
-    ##  2 00:00     1 B           Super    1.09
-    ##  3 00:01     2 C           Super    1.02
-    ##  4 00:30     1 A           Diesel   1.01
-    ##  5 00:30     1 B           Diesel   1.2 
-    ##  6 00:31     2 C           Diesel   1.12
-    ##  7 01:00     1 A           Super   NA   
-    ##  8 01:00     1 B           Super    1.07
-    ##  9 01:01     2 C           Super    1.15
-    ## 10 01:30     1 A           Diesel   1.11
-    ## 11 01:30     1 B           Diesel  NA   
-    ## 12 01:31     2 C           Diesel   1.08
-    ## 13 02:00     1 A           Super   NA   
-    ## 14 02:00     1 B           Super    1.08
-    ## 15 02:01     2 C           Super    1.14
-    ## 16 02:30     1 A           Diesel   1.19
-    ## 17 02:30     1 B           Diesel   1.06
-    ## 18 02:31     2 C           Diesel   1.04
+| time  | area | gas_station | product | price |
+|:------|-----:|:------------|:--------|------:|
+| 00:00 |    1 | A           | Super   |  1.15 |
+| 00:00 |    1 | B           | Super   |  1.09 |
+| 00:01 |    2 | C           | Super   |  1.02 |
+| 00:30 |    1 | A           | Diesel  |  1.01 |
+| 00:30 |    1 | B           | Diesel  |  1.20 |
+| 00:31 |    2 | C           | Diesel  |  1.12 |
+| 01:00 |    1 | A           | Super   |    NA |
+| 01:00 |    1 | B           | Super   |  1.07 |
+| 01:01 |    2 | C           | Super   |  1.15 |
+| 01:30 |    1 | A           | Diesel  |  1.11 |
+| 01:30 |    1 | B           | Diesel  |    NA |
+| 01:31 |    2 | C           | Diesel  |  1.08 |
+| 02:00 |    1 | A           | Super   |    NA |
+| 02:00 |    1 | B           | Super   |  1.08 |
+| 02:01 |    2 | C           | Super   |  1.14 |
+| 02:30 |    1 | A           | Diesel  |  1.19 |
+| 02:30 |    1 | B           | Diesel  |  1.06 |
+| 02:31 |    2 | C           | Diesel  |  1.04 |
 
 ## 4 - Coupled columns
 
@@ -298,30 +322,30 @@ df4 <- tibble(
   
   price = round(runif(n= num_records * num_products * num_stations, min=1, max=1.2), 2)
 )
-df4
+
+df4 %>% kable()
 ```
 
-    ## # A tibble: 18 × 8
-    ##    time  area_id area      station_id station product_id product price
-    ##    <chr>   <dbl> <chr>          <dbl> <chr>        <dbl> <chr>   <dbl>
-    ##  1 00:00       1 Berlin             1 Shell            1 Super    1.03
-    ##  2 00:00       1 Berlin             2 BP               1 Super    1.06
-    ##  3 00:01       2 Frankfurt          3 ESSO             1 Super    1.14
-    ##  4 00:30       1 Berlin             1 Shell            2 Diesel   1.19
-    ##  5 00:30       1 Berlin             2 BP               2 Diesel   1.18
-    ##  6 00:31       2 Frankfurt          3 ESSO             2 Diesel   1.13
-    ##  7 01:00       1 Berlin             1 Shell            1 Super    1.04
-    ##  8 01:00       1 Berlin             2 BP               1 Super    1.09
-    ##  9 01:01       2 Frankfurt          3 ESSO             1 Super    1.02
-    ## 10 01:30       1 Berlin             1 Shell            2 Diesel   1.15
-    ## 11 01:30       1 Berlin             2 BP               2 Diesel   1.1 
-    ## 12 01:31       2 Frankfurt          3 ESSO             2 Diesel   1.09
-    ## 13 02:00       1 Berlin             1 Shell            1 Super    1.18
-    ## 14 02:00       1 Berlin             2 BP               1 Super    1.18
-    ## 15 02:01       2 Frankfurt          3 ESSO             1 Super    1.03
-    ## 16 02:30       1 Berlin             1 Shell            2 Diesel   1.09
-    ## 17 02:30       1 Berlin             2 BP               2 Diesel   1.02
-    ## 18 02:31       2 Frankfurt          3 ESSO             2 Diesel   1.19
+| time  | area_id | area      | station_id | station | product_id | product | price |
+|:------|--------:|:----------|-----------:|:--------|-----------:|:--------|------:|
+| 00:00 |       1 | Berlin    |          1 | Shell   |          1 | Super   |  1.03 |
+| 00:00 |       1 | Berlin    |          2 | BP      |          1 | Super   |  1.06 |
+| 00:01 |       2 | Frankfurt |          3 | ESSO    |          1 | Super   |  1.14 |
+| 00:30 |       1 | Berlin    |          1 | Shell   |          2 | Diesel  |  1.19 |
+| 00:30 |       1 | Berlin    |          2 | BP      |          2 | Diesel  |  1.18 |
+| 00:31 |       2 | Frankfurt |          3 | ESSO    |          2 | Diesel  |  1.13 |
+| 01:00 |       1 | Berlin    |          1 | Shell   |          1 | Super   |  1.04 |
+| 01:00 |       1 | Berlin    |          2 | BP      |          1 | Super   |  1.09 |
+| 01:01 |       2 | Frankfurt |          3 | ESSO    |          1 | Super   |  1.02 |
+| 01:30 |       1 | Berlin    |          1 | Shell   |          2 | Diesel  |  1.15 |
+| 01:30 |       1 | Berlin    |          2 | BP      |          2 | Diesel  |  1.10 |
+| 01:31 |       2 | Frankfurt |          3 | ESSO    |          2 | Diesel  |  1.09 |
+| 02:00 |       1 | Berlin    |          1 | Shell   |          1 | Super   |  1.18 |
+| 02:00 |       1 | Berlin    |          2 | BP      |          1 | Super   |  1.18 |
+| 02:01 |       2 | Frankfurt |          3 | ESSO    |          1 | Super   |  1.03 |
+| 02:30 |       1 | Berlin    |          1 | Shell   |          2 | Diesel  |  1.09 |
+| 02:30 |       1 | Berlin    |          2 | BP      |          2 | Diesel  |  1.02 |
+| 02:31 |       2 | Frankfurt |          3 | ESSO    |          2 | Diesel  |  1.19 |
 
 And some records have been lost again:
 
@@ -331,51 +355,68 @@ df4_missing <- df4 %>%
   filter(!(time == "01:30" & station == "BP" & product == "Diesel")) %>%
   filter(!(time == "02:00" & station == "Shell" & product == "Super"))
   
-df4_missing
+df4_missing %>% kable()
 ```
 
-    ## # A tibble: 15 × 8
-    ##    time  area_id area      station_id station product_id product price
-    ##    <chr>   <dbl> <chr>          <dbl> <chr>        <dbl> <chr>   <dbl>
-    ##  1 00:00       1 Berlin             1 Shell            1 Super    1.03
-    ##  2 00:00       1 Berlin             2 BP               1 Super    1.06
-    ##  3 00:01       2 Frankfurt          3 ESSO             1 Super    1.14
-    ##  4 00:30       1 Berlin             1 Shell            2 Diesel   1.19
-    ##  5 00:30       1 Berlin             2 BP               2 Diesel   1.18
-    ##  6 00:31       2 Frankfurt          3 ESSO             2 Diesel   1.13
-    ##  7 01:00       1 Berlin             2 BP               1 Super    1.09
-    ##  8 01:01       2 Frankfurt          3 ESSO             1 Super    1.02
-    ##  9 01:30       1 Berlin             1 Shell            2 Diesel   1.15
-    ## 10 01:31       2 Frankfurt          3 ESSO             2 Diesel   1.09
-    ## 11 02:00       1 Berlin             2 BP               1 Super    1.18
-    ## 12 02:01       2 Frankfurt          3 ESSO             1 Super    1.03
-    ## 13 02:30       1 Berlin             1 Shell            2 Diesel   1.09
-    ## 14 02:30       1 Berlin             2 BP               2 Diesel   1.02
-    ## 15 02:31       2 Frankfurt          3 ESSO             2 Diesel   1.19
+| time  | area_id | area      | station_id | station | product_id | product | price |
+|:------|--------:|:----------|-----------:|:--------|-----------:|:--------|------:|
+| 00:00 |       1 | Berlin    |          1 | Shell   |          1 | Super   |  1.03 |
+| 00:00 |       1 | Berlin    |          2 | BP      |          1 | Super   |  1.06 |
+| 00:01 |       2 | Frankfurt |          3 | ESSO    |          1 | Super   |  1.14 |
+| 00:30 |       1 | Berlin    |          1 | Shell   |          2 | Diesel  |  1.19 |
+| 00:30 |       1 | Berlin    |          2 | BP      |          2 | Diesel  |  1.18 |
+| 00:31 |       2 | Frankfurt |          3 | ESSO    |          2 | Diesel  |  1.13 |
+| 01:00 |       1 | Berlin    |          2 | BP      |          1 | Super   |  1.09 |
+| 01:01 |       2 | Frankfurt |          3 | ESSO    |          1 | Super   |  1.02 |
+| 01:30 |       1 | Berlin    |          1 | Shell   |          2 | Diesel  |  1.15 |
+| 01:31 |       2 | Frankfurt |          3 | ESSO    |          2 | Diesel  |  1.09 |
+| 02:00 |       1 | Berlin    |          2 | BP      |          1 | Super   |  1.18 |
+| 02:01 |       2 | Frankfurt |          3 | ESSO    |          1 | Super   |  1.03 |
+| 02:30 |       1 | Berlin    |          1 | Shell   |          2 | Diesel  |  1.09 |
+| 02:30 |       1 | Berlin    |          2 | BP      |          2 | Diesel  |  1.02 |
+| 02:31 |       2 | Frankfurt |          3 | ESSO    |          2 | Diesel  |  1.19 |
 
 A simple complete would generate too many rows:
 
 ``` r
 df4_missing %>% 
   group_by(area, product) %>% 
-  complete(station, station_id, area_id, product_id, time)
+  complete(station, station_id, area_id, product_id, time) %>%
+  kable()
 ```
 
-    ## # A tibble: 30 × 8
-    ## # Groups:   area, product [4]
-    ##    area   product station station_id area_id product_id time  price
-    ##    <chr>  <chr>   <chr>        <dbl>   <dbl>      <dbl> <chr> <dbl>
-    ##  1 Berlin Diesel  BP               1       1          2 00:30 NA   
-    ##  2 Berlin Diesel  BP               1       1          2 01:30 NA   
-    ##  3 Berlin Diesel  BP               1       1          2 02:30 NA   
-    ##  4 Berlin Diesel  BP               2       1          2 00:30  1.18
-    ##  5 Berlin Diesel  BP               2       1          2 01:30 NA   
-    ##  6 Berlin Diesel  BP               2       1          2 02:30  1.02
-    ##  7 Berlin Diesel  Shell            1       1          2 00:30  1.19
-    ##  8 Berlin Diesel  Shell            1       1          2 01:30  1.15
-    ##  9 Berlin Diesel  Shell            1       1          2 02:30  1.09
-    ## 10 Berlin Diesel  Shell            2       1          2 00:30 NA   
-    ## # … with 20 more rows
+| area      | product | station | station_id | area_id | product_id | time  | price |
+|:----------|:--------|:--------|-----------:|--------:|-----------:|:------|------:|
+| Berlin    | Diesel  | BP      |          1 |       1 |          2 | 00:30 |    NA |
+| Berlin    | Diesel  | BP      |          1 |       1 |          2 | 01:30 |    NA |
+| Berlin    | Diesel  | BP      |          1 |       1 |          2 | 02:30 |    NA |
+| Berlin    | Diesel  | BP      |          2 |       1 |          2 | 00:30 |  1.18 |
+| Berlin    | Diesel  | BP      |          2 |       1 |          2 | 01:30 |    NA |
+| Berlin    | Diesel  | BP      |          2 |       1 |          2 | 02:30 |  1.02 |
+| Berlin    | Diesel  | Shell   |          1 |       1 |          2 | 00:30 |  1.19 |
+| Berlin    | Diesel  | Shell   |          1 |       1 |          2 | 01:30 |  1.15 |
+| Berlin    | Diesel  | Shell   |          1 |       1 |          2 | 02:30 |  1.09 |
+| Berlin    | Diesel  | Shell   |          2 |       1 |          2 | 00:30 |    NA |
+| Berlin    | Diesel  | Shell   |          2 |       1 |          2 | 01:30 |    NA |
+| Berlin    | Diesel  | Shell   |          2 |       1 |          2 | 02:30 |    NA |
+| Berlin    | Super   | BP      |          1 |       1 |          1 | 00:00 |    NA |
+| Berlin    | Super   | BP      |          1 |       1 |          1 | 01:00 |    NA |
+| Berlin    | Super   | BP      |          1 |       1 |          1 | 02:00 |    NA |
+| Berlin    | Super   | BP      |          2 |       1 |          1 | 00:00 |  1.06 |
+| Berlin    | Super   | BP      |          2 |       1 |          1 | 01:00 |  1.09 |
+| Berlin    | Super   | BP      |          2 |       1 |          1 | 02:00 |  1.18 |
+| Berlin    | Super   | Shell   |          1 |       1 |          1 | 00:00 |  1.03 |
+| Berlin    | Super   | Shell   |          1 |       1 |          1 | 01:00 |    NA |
+| Berlin    | Super   | Shell   |          1 |       1 |          1 | 02:00 |    NA |
+| Berlin    | Super   | Shell   |          2 |       1 |          1 | 00:00 |    NA |
+| Berlin    | Super   | Shell   |          2 |       1 |          1 | 01:00 |    NA |
+| Berlin    | Super   | Shell   |          2 |       1 |          1 | 02:00 |    NA |
+| Frankfurt | Diesel  | ESSO    |          3 |       2 |          2 | 00:31 |  1.13 |
+| Frankfurt | Diesel  | ESSO    |          3 |       2 |          2 | 01:31 |  1.09 |
+| Frankfurt | Diesel  | ESSO    |          3 |       2 |          2 | 02:31 |  1.19 |
+| Frankfurt | Super   | ESSO    |          3 |       2 |          1 | 00:01 |  1.14 |
+| Frankfurt | Super   | ESSO    |          3 |       2 |          1 | 01:01 |  1.02 |
+| Frankfurt | Super   | ESSO    |          3 |       2 |          1 | 02:01 |  1.03 |
 
 To find only the combinations (of station, station_id, area_id and
 product_id) that occur in the group data, `nesting` should be used:
@@ -385,31 +426,29 @@ df4_complete <- df4_missing %>%
   group_by(area, product) %>% 
   complete(nesting(station, station_id, area_id, product_id), time)
 
-df4_complete
+df4_complete %>% kable()
 ```
 
-    ## # A tibble: 18 × 8
-    ## # Groups:   area, product [4]
-    ##    area      product station station_id area_id product_id time  price
-    ##    <chr>     <chr>   <chr>        <dbl>   <dbl>      <dbl> <chr> <dbl>
-    ##  1 Berlin    Diesel  BP               2       1          2 00:30  1.18
-    ##  2 Berlin    Diesel  BP               2       1          2 01:30 NA   
-    ##  3 Berlin    Diesel  BP               2       1          2 02:30  1.02
-    ##  4 Berlin    Diesel  Shell            1       1          2 00:30  1.19
-    ##  5 Berlin    Diesel  Shell            1       1          2 01:30  1.15
-    ##  6 Berlin    Diesel  Shell            1       1          2 02:30  1.09
-    ##  7 Berlin    Super   BP               2       1          1 00:00  1.06
-    ##  8 Berlin    Super   BP               2       1          1 01:00  1.09
-    ##  9 Berlin    Super   BP               2       1          1 02:00  1.18
-    ## 10 Berlin    Super   Shell            1       1          1 00:00  1.03
-    ## 11 Berlin    Super   Shell            1       1          1 01:00 NA   
-    ## 12 Berlin    Super   Shell            1       1          1 02:00 NA   
-    ## 13 Frankfurt Diesel  ESSO             3       2          2 00:31  1.13
-    ## 14 Frankfurt Diesel  ESSO             3       2          2 01:31  1.09
-    ## 15 Frankfurt Diesel  ESSO             3       2          2 02:31  1.19
-    ## 16 Frankfurt Super   ESSO             3       2          1 00:01  1.14
-    ## 17 Frankfurt Super   ESSO             3       2          1 01:01  1.02
-    ## 18 Frankfurt Super   ESSO             3       2          1 02:01  1.03
+| area      | product | station | station_id | area_id | product_id | time  | price |
+|:----------|:--------|:--------|-----------:|--------:|-----------:|:------|------:|
+| Berlin    | Diesel  | BP      |          2 |       1 |          2 | 00:30 |  1.18 |
+| Berlin    | Diesel  | BP      |          2 |       1 |          2 | 01:30 |    NA |
+| Berlin    | Diesel  | BP      |          2 |       1 |          2 | 02:30 |  1.02 |
+| Berlin    | Diesel  | Shell   |          1 |       1 |          2 | 00:30 |  1.19 |
+| Berlin    | Diesel  | Shell   |          1 |       1 |          2 | 01:30 |  1.15 |
+| Berlin    | Diesel  | Shell   |          1 |       1 |          2 | 02:30 |  1.09 |
+| Berlin    | Super   | BP      |          2 |       1 |          1 | 00:00 |  1.06 |
+| Berlin    | Super   | BP      |          2 |       1 |          1 | 01:00 |  1.09 |
+| Berlin    | Super   | BP      |          2 |       1 |          1 | 02:00 |  1.18 |
+| Berlin    | Super   | Shell   |          1 |       1 |          1 | 00:00 |  1.03 |
+| Berlin    | Super   | Shell   |          1 |       1 |          1 | 01:00 |    NA |
+| Berlin    | Super   | Shell   |          1 |       1 |          1 | 02:00 |    NA |
+| Frankfurt | Diesel  | ESSO    |          3 |       2 |          2 | 00:31 |  1.13 |
+| Frankfurt | Diesel  | ESSO    |          3 |       2 |          2 | 01:31 |  1.09 |
+| Frankfurt | Diesel  | ESSO    |          3 |       2 |          2 | 02:31 |  1.19 |
+| Frankfurt | Super   | ESSO    |          3 |       2 |          1 | 00:01 |  1.14 |
+| Frankfurt | Super   | ESSO    |          3 |       2 |          1 | 01:01 |  1.02 |
+| Frankfurt | Super   | ESSO    |          3 |       2 |          1 | 02:01 |  1.03 |
 
 Now the tibble can be reordered again:
 
@@ -418,31 +457,29 @@ df4_complete <- df4_complete %>%
   relocate(time, area_id, area, station_id, station, product_id, product) %>% 
   arrange(time, station_id)
 
-df4_complete
+df4_complete %>% kable()
 ```
 
-    ## # A tibble: 18 × 8
-    ## # Groups:   area, product [4]
-    ##    time  area_id area      station_id station product_id product price
-    ##    <chr>   <dbl> <chr>          <dbl> <chr>        <dbl> <chr>   <dbl>
-    ##  1 00:00       1 Berlin             1 Shell            1 Super    1.03
-    ##  2 00:00       1 Berlin             2 BP               1 Super    1.06
-    ##  3 00:01       2 Frankfurt          3 ESSO             1 Super    1.14
-    ##  4 00:30       1 Berlin             1 Shell            2 Diesel   1.19
-    ##  5 00:30       1 Berlin             2 BP               2 Diesel   1.18
-    ##  6 00:31       2 Frankfurt          3 ESSO             2 Diesel   1.13
-    ##  7 01:00       1 Berlin             1 Shell            1 Super   NA   
-    ##  8 01:00       1 Berlin             2 BP               1 Super    1.09
-    ##  9 01:01       2 Frankfurt          3 ESSO             1 Super    1.02
-    ## 10 01:30       1 Berlin             1 Shell            2 Diesel   1.15
-    ## 11 01:30       1 Berlin             2 BP               2 Diesel  NA   
-    ## 12 01:31       2 Frankfurt          3 ESSO             2 Diesel   1.09
-    ## 13 02:00       1 Berlin             1 Shell            1 Super   NA   
-    ## 14 02:00       1 Berlin             2 BP               1 Super    1.18
-    ## 15 02:01       2 Frankfurt          3 ESSO             1 Super    1.03
-    ## 16 02:30       1 Berlin             1 Shell            2 Diesel   1.09
-    ## 17 02:30       1 Berlin             2 BP               2 Diesel   1.02
-    ## 18 02:31       2 Frankfurt          3 ESSO             2 Diesel   1.19
+| time  | area_id | area      | station_id | station | product_id | product | price |
+|:------|--------:|:----------|-----------:|:--------|-----------:|:--------|------:|
+| 00:00 |       1 | Berlin    |          1 | Shell   |          1 | Super   |  1.03 |
+| 00:00 |       1 | Berlin    |          2 | BP      |          1 | Super   |  1.06 |
+| 00:01 |       2 | Frankfurt |          3 | ESSO    |          1 | Super   |  1.14 |
+| 00:30 |       1 | Berlin    |          1 | Shell   |          2 | Diesel  |  1.19 |
+| 00:30 |       1 | Berlin    |          2 | BP      |          2 | Diesel  |  1.18 |
+| 00:31 |       2 | Frankfurt |          3 | ESSO    |          2 | Diesel  |  1.13 |
+| 01:00 |       1 | Berlin    |          1 | Shell   |          1 | Super   |    NA |
+| 01:00 |       1 | Berlin    |          2 | BP      |          1 | Super   |  1.09 |
+| 01:01 |       2 | Frankfurt |          3 | ESSO    |          1 | Super   |  1.02 |
+| 01:30 |       1 | Berlin    |          1 | Shell   |          2 | Diesel  |  1.15 |
+| 01:30 |       1 | Berlin    |          2 | BP      |          2 | Diesel  |    NA |
+| 01:31 |       2 | Frankfurt |          3 | ESSO    |          2 | Diesel  |  1.09 |
+| 02:00 |       1 | Berlin    |          1 | Shell   |          1 | Super   |    NA |
+| 02:00 |       1 | Berlin    |          2 | BP      |          1 | Super   |  1.18 |
+| 02:01 |       2 | Frankfurt |          3 | ESSO    |          1 | Super   |  1.03 |
+| 02:30 |       1 | Berlin    |          1 | Shell   |          2 | Diesel  |  1.09 |
+| 02:30 |       1 | Berlin    |          2 | BP      |          2 | Diesel  |  1.02 |
+| 02:31 |       2 | Frankfurt |          3 | ESSO    |          2 | Diesel  |  1.19 |
 
 ### Plot comparison
 

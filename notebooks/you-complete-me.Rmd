@@ -3,6 +3,8 @@ title: "You complete me"
 output: rmarkdown::github_document
 ---
 
+https://www.youtube.com/watch?v=ZLVWUGMkJCY
+
 ```{r}
 if (!require("pacman")) install.packages("pacman")
 library("pacman")
@@ -27,7 +29,9 @@ df1 <- tibble(
   time = c("00:00", "00:00", "01:00", "02:00", "02:00"),
   price = c(1.10, 2.10, 1.11, 1.12, 2.13)
 )
-df1
+
+p_load(knitr)
+kable(df1)
 ```
 
 *Note*: The price for Diesel at 01:00 AM was not recorded/ is missing.
@@ -35,7 +39,7 @@ df1
 The missing row for the Diesel price at 01:00 AM can be generated using the ```complete``` function:
 
 ```{r}
-df1 %>% complete(product, time)
+df1 %>% complete(product, time) %>% kable()
 ```
 
 ## 2 - Grouping
@@ -49,7 +53,8 @@ df2 <- tibble(
   time = c("00:00", "00:00", "00:01", "01:00", "01:01", "02:00", "02:00", "02:01"),
   price = c(1.10, 1.10, 1.05, 1.11, 1.04, 1.12, 1.12, 1.07)
 )
-df2
+
+df2 %>% kable()
 ```
 
 *Note*: The price for gas_station B at 01:00 AM was not recorded/ is missing.
@@ -57,7 +62,7 @@ df2
 A simple ```complete``` would create an undesired result, because undesired rows would be generated. Since prices in area A are never recorded at the 01-minute mark, these rows are redundant:
 
 ```{r}
-df2 %>% complete(area, gas_station, time)
+df2 %>% complete(area, gas_station, time) %>% kable()
 ```
 
 To complete this date frame correctly, the price records have to be grouped by area.
@@ -65,7 +70,8 @@ To complete this date frame correctly, the price records have to be grouped by a
 ```{r}
 df2 %>% 
   group_by(area) %>% 
-  complete(gas_station, time)
+  complete(gas_station, time) %>%
+  kable()
 ```
 
 ## 3 - Complex Grouping
@@ -92,7 +98,8 @@ df3 <- tibble(
   product = rep(rep(products, each=num_stations), times = num_records),
   price = round(runif(n= num_records * num_products * num_stations, min=1, max=1.2), 2)
 )
-df3
+
+df3 %>% kable()
 ```
 
 For whatever reason, some records have been lost:
@@ -102,7 +109,8 @@ df3_missing <- df3 %>%
   filter(!(time == "01:30" & gas_station == "B" & product == "Diesel")) %>%
   filter(!(time == "02:00" & gas_station == "A" & product == "Super")) %>%
   filter(!(time == "01:00" & gas_station == "A" & product == "Super"))
-df3_missing
+
+df3_missing %>% kable()
 ```
 
 Now, to indicate the missing records, the missing rows can be generated using complete:
@@ -119,7 +127,8 @@ Now the tibble can be reordered again:
 df3_complete <- df3_complete %>% 
   relocate(time, area, gas_station, product) %>% 
   arrange(time, gas_station)
-df3_complete
+
+df3_complete %>% kable()
 ```
 
 ## 4 - Coupled columns
@@ -160,7 +169,8 @@ df4 <- tibble(
   
   price = round(runif(n= num_records * num_products * num_stations, min=1, max=1.2), 2)
 )
-df4
+
+df4 %>% kable()
 ```
 
 And some records have been lost again:
@@ -171,7 +181,7 @@ df4_missing <- df4 %>%
   filter(!(time == "01:30" & station == "BP" & product == "Diesel")) %>%
   filter(!(time == "02:00" & station == "Shell" & product == "Super"))
   
-df4_missing
+df4_missing %>% kable()
 ```
 
 A simple complete would generate too many rows:
@@ -179,7 +189,8 @@ A simple complete would generate too many rows:
 ```{r rows.print=20}
 df4_missing %>% 
   group_by(area, product) %>% 
-  complete(station, station_id, area_id, product_id, time)
+  complete(station, station_id, area_id, product_id, time) %>%
+  kable()
 ```
 
 To find only the combinations (of station, station_id, area_id and product_id) that occur in the group data, ```nesting``` should be used:
@@ -189,7 +200,7 @@ df4_complete <- df4_missing %>%
   group_by(area, product) %>% 
   complete(nesting(station, station_id, area_id, product_id), time)
 
-df4_complete
+df4_complete %>% kable()
 ```
 
 Now the tibble can be reordered again:
@@ -199,7 +210,7 @@ df4_complete <- df4_complete %>%
   relocate(time, area_id, area, station_id, station, product_id, product) %>% 
   arrange(time, station_id)
 
-df4_complete
+df4_complete %>% kable()
 ```
 ### Plot comparison
 
