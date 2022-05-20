@@ -47,7 +47,7 @@ germany %>% ggplot(aes(long, lat, group = group, fill = subregion)) +
 
 Some countries provide spatial data in certain data formats such as KML or KMZ (which is an compressed version of KML).
 
-Austria provides the districts borders of Vienna at their [data.gv.at](https://www.data.gv.at/) page:
+Austria provides the district borders of Vienna at their [data.gv.at](https://www.data.gv.at/) page:
 
 - https://www.data.gv.at/katalog/dataset/2ee6b8bf-6292-413c-bb8b-bd22dbb2ad4b
 
@@ -64,7 +64,7 @@ vienna_districts <- read_sf(districts_kml_url)
 
 vienna_districts$geometry
 vienna_districts$geometry[1]
-vienna_districts$Description
+vienna_districts$Description[1]
 
 glimpse(vienna_districts)
 ```
@@ -76,6 +76,11 @@ The ```geometry``` contains both a single point to the district and a polygon sh
 ```{r}
 points <- st_collection_extract(vienna_districts, type = "POINT")
 points %>% select(geometry)
+```
+
+```{r}
+st_geometry_type(vienna_districts)
+st_collection_extract(vienna_districts, type="LINESTRING")
 ```
 
 ```{r}
@@ -184,7 +189,6 @@ ggplot(districts) +
   theme(legend.position = "none")
 ```
 
-
 ## References 
 
 - https://ggplot2.tidyverse.org/reference/map_data.html
@@ -195,4 +199,12 @@ ggplot(districts) +
 - https://yutani.rbind.io/post/geom-sf-text-and-geom-sf-label-are-coming/
 - https://www.youtube.com/watch?v=AgWgPSZ7Gp0
 - https://www.youtube.com/watch?v=M7khlIRlr4s
+- https://www.youtube.com/watch?v=2aSueIpQ_b8
+- https://www.youtube.com/watch?v=fjTnzQUvht4
+- https://www.youtube.com/watch?v=BgsN-tpolZM
 - https://www.nceas.ucsb.edu/sites/default/files/2020-04/ggmapCheatsheet.pdf
+- https://ggplot2.tidyverse.org/reference/fortify.sp.html
+- https://ggplot2.tidyverse.org/reference/fortify.html
+- https://www.r-bloggers.com/2016/12/turning-kml-into-tidy-data-frames/
+- https://stackoverflow.com/questions/34543468/successor-to-ggplot2fortify
+- https://ggplot2-book.org/maps.html
